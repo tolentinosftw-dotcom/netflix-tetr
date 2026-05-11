@@ -45,60 +45,54 @@ function imageTitle(filename) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function createSqliteStore() {
-  const Database = require("better-sqlite3");
-  const db = new Database(path.join(dataDir, "netflix-nostalgia.db"));
-  db.pragma("journal_mode = WAL");
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS proposals (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      format TEXT NOT NULL,
-      reason TEXT NOT NULL,
-      creator TEXT NOT NULL,
-      country TEXT NOT NULL,
-      reward TEXT NOT NULL,
-      image_url TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
+function createLocalStore() {
+  const localDbPath = path.join(dataDir, "local-store.json");
 
-    CREATE TABLE IF NOT EXISTS votes (
-      proposal_id TEXT NOT NULL,
-      voter_id TEXT NOT NULL,
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (proposal_id, voter_id),
-      FOREIGN KEY (proposal_id) REFERENCES proposals(id) ON DELETE CASCADE
-    );
-  `);
+  function read() {
+    if (!fs.existsSync(localDbPath)) {
+      return { proposals: [], votes: [] };
+    }
+    return JSON.parse(fs.readFileSync(localDbPath, "utf8"));
+  }
+
+  function write(data) {
+    fs.writeFileSync(localDbPath, JSON.stringify(data, null, 2));
+  }
 
   return {
     async list(voterId) {
-      const rows = db.prepare(`
-        SELECT p.*, COUNT(v.voter_id) AS votes,
-          EXISTS(SELECT 1 FROM votes own WHERE own.proposal_id = p.id AND own.voter_id = ?) AS has_voted
-        FROM proposals p
-        LEFT JOIN votes v ON v.proposal_id = p.id
-        GROUP BY p.id
-        ORDER BY votes DESC, p.created_at DESC
-      `).all(voterId);
-      return rows;
+      const data = read();
+      return data.proposals
+        .map((proposal) => {
+          const votes = data.votes.filter((vote) => vote.proposal_id === proposal.id);
+          return {
+            ...proposal,
+            votes: votes.length,
+            has_voted: votes.some((vote) => vote.voter_id === voterId)
+          };
+        })
+        .sort((a, b) => b.votes - a.votes || new Date(b.created_at) - new Date(a.created_at));
     },
     async insertProposal(proposal) {
-      db.prepare(`
-        INSERT INTO proposals (id, title, format, reason, creator, country, reward, image_url)
-        VALUES (@id, @title, @format, @reason, @creator, @country, @reward, @image_url)
-      `).run(proposal);
+      const data = read();
+      data.proposals.push({ ...proposal, created_at: new Date().toISOString() });
+      write(data);
     },
     async getProposal(id) {
-      return db.prepare("SELECT * FROM proposals WHERE id = ?").get(id);
+      return read().proposals.find((proposal) => proposal.id === id);
     },
     async vote(proposalId, voterId) {
-      const result = db.prepare("INSERT OR IGNORE INTO votes (proposal_id, voter_id) VALUES (?, ?)").run(proposalId, voterId);
-      const votes = db.prepare("SELECT COUNT(*) AS total FROM votes WHERE proposal_id = ?").get(proposalId).total;
-      return { votes, counted: result.changes === 1 };
+      const data = read();
+      const exists = data.votes.some((vote) => vote.proposal_id === proposalId && vote.voter_id === voterId);
+      if (!exists) {
+        data.votes.push({ proposal_id: proposalId, voter_id: voterId, created_at: new Date().toISOString() });
+        write(data);
+      }
+      const votes = data.votes.filter((vote) => vote.proposal_id === proposalId).length;
+      return { votes, counted: !exists };
     },
     async hasImage(imageUrl) {
-      return Boolean(db.prepare("SELECT 1 FROM proposals WHERE image_url = ?").get(imageUrl));
+      return read().proposals.some((proposal) => proposal.image_url === imageUrl);
     }
   };
 }
@@ -174,7 +168,7 @@ function createPostgresStore() {
   };
 }
 
-const store = usePostgres ? createPostgresStore() : createSqliteStore();
+const store = usePostgres ? createPostgresStore() : createLocalStore();
 let ready;
 
 function ensureStoreReady() {
@@ -301,7 +295,7 @@ function proposalRow(row) {
 app.get("/api/proposals", waitForStore, ensureVoter, async (req, res, next) => {
   try {
     const rows = await store.list(req.voterId);
-    res.json({ proposals: rows.map(proposalRow), database: usePostgres ? "postgres" : "sqlite-local" });
+    res.json({ proposals: rows.map(proposalRow), database: usePostgres ? "postgres" : "json-local" });
   } catch (error) {
     next(error);
   }
@@ -365,7 +359,7 @@ app.use((err, _req, res, _next) => {
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Netflix Nostalgia Vote listo en http://localhost:${port}`);
-    console.log(`Base de datos: ${usePostgres ? "Postgres global" : "SQLite local"}`);
+    console.log(`Base de datos: ${usePostgres ? "Postgres global" : "JSON local"}`);
   });
 }
 

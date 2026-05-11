@@ -15,9 +15,9 @@ Abre `http://localhost:3000`.
 
 La app no usa `localStorage`.
 
-En local guarda en SQLite:
+En local guarda en un archivo JSON:
 
-- Base de datos: `data/netflix-nostalgia.db`
+- Base de datos local: `data/local-store.json`
 - Votos duplicados: se bloquean por cookie `voter_id`
 
 En produccion usa Postgres si defines `DATABASE_URL`. Asi todas las personas ven las mismas propuestas y votos desde cualquier pais. Las imagenes subidas se guardan como datos en la base para no depender del disco temporal de Vercel.
