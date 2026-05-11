@@ -15,8 +15,9 @@ const app = express();
 const port = Number(process.env.PORT || 3000);
 const publicBaseUrl = process.env.PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`);
 const maxUploadMb = Number(process.env.MAX_UPLOAD_MB || 3);
-const databaseUrl = process.env.DATABASE_URL || "";
-const hasPlaceholderDatabaseUrl = /usuario:password@host|\[YOUR-PASSWORD\]/i.test(databaseUrl);
+const rawDatabaseUrl = process.env.DATABASE_URL || "";
+const databaseUrl = normalizeDatabaseUrl(rawDatabaseUrl);
+const hasPlaceholderDatabaseUrl = /usuario:password@host|\[YOUR-PASSWORD\]/i.test(rawDatabaseUrl);
 const usePostgres = Boolean(databaseUrl) && !hasPlaceholderDatabaseUrl;
 const isVercel = Boolean(process.env.VERCEL);
 
@@ -32,6 +33,12 @@ if (!isVercel) {
 
 function nanoid(size = 10) {
   return crypto.randomBytes(Math.ceil(size * 0.75)).toString("base64url").slice(0, size);
+}
+
+function normalizeDatabaseUrl(value) {
+  return String(value || "")
+    .trim()
+    .replace(/:\[([^\]]+)\]@/, (_match, password) => `:${encodeURIComponent(password)}@`);
 }
 
 function imageTitle(filename) {
