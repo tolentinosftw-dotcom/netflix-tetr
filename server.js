@@ -7,7 +7,6 @@ const compression = require("compression");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
-const Database = require("better-sqlite3");
 const { Pool } = require("pg");
 const crypto = require("crypto");
 
@@ -47,6 +46,7 @@ function imageTitle(filename) {
 }
 
 function createSqliteStore() {
+  const Database = require("better-sqlite3");
   const db = new Database(path.join(dataDir, "netflix-nostalgia.db"));
   db.pragma("journal_mode = WAL");
   db.exec(`
@@ -175,7 +175,14 @@ function createPostgresStore() {
 }
 
 const store = usePostgres ? createPostgresStore() : createSqliteStore();
-const ready = Promise.resolve(store.init?.()).then(() => seedFromImagesFolder());
+let ready;
+
+function ensureStoreReady() {
+  if (!ready) {
+    ready = Promise.resolve(store.init?.()).then(() => seedFromImagesFolder());
+  }
+  return ready;
+}
 
 async function seedFromImagesFolder() {
   const allowed = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
@@ -248,7 +255,7 @@ app.use("/api", apiLimiter);
 
 async function waitForStore(_req, _res, next) {
   try {
-    await ready;
+    await ensureStoreReady();
     next();
   } catch (error) {
     next(error);
