@@ -14,7 +14,9 @@ const app = express();
 const port = Number(process.env.PORT || 3000);
 const publicBaseUrl = process.env.PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`);
 const maxUploadMb = Number(process.env.MAX_UPLOAD_MB || 3);
-const usePostgres = Boolean(process.env.DATABASE_URL);
+const databaseUrl = process.env.DATABASE_URL || "";
+const hasPlaceholderDatabaseUrl = /usuario:password@host|\[YOUR-PASSWORD\]/i.test(databaseUrl);
+const usePostgres = Boolean(databaseUrl) && !hasPlaceholderDatabaseUrl;
 
 const rootDir = __dirname;
 const dataDir = path.join(rootDir, "data");
@@ -99,8 +101,8 @@ function createLocalStore() {
 
 function createPostgresStore() {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes("localhost") ? false : { rejectUnauthorized: false }
+    connectionString: databaseUrl,
+    ssl: databaseUrl.includes("localhost") ? false : { rejectUnauthorized: false }
   });
 
   return {
@@ -249,6 +251,9 @@ app.use("/api", apiLimiter);
 
 async function waitForStore(_req, _res, next) {
   try {
+    if (hasPlaceholderDatabaseUrl) {
+      return next(new Error("DATABASE_URL todavia tiene el valor de ejemplo. Pega la URL real del Transaction pooler de Supabase en Vercel."));
+    }
     await ensureStoreReady();
     next();
   } catch (error) {
