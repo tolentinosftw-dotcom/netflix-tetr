@@ -260,6 +260,13 @@ const writeLimiter = rateLimit({
 
 app.use("/api", apiLimiter);
 
+function safeError(error) {
+  return {
+    message: String(error?.message || "Error desconocido").replace(databaseUrl, "[DATABASE_URL]"),
+    code: error?.code || null
+  };
+}
+
 async function waitForStore(_req, _res, next) {
   try {
     if (hasPlaceholderDatabaseUrl) {
@@ -317,6 +324,23 @@ app.get("/api/proposals", waitForStore, ensureVoter, async (req, res, next) => {
   }
 });
 
+app.get("/api/health", async (_req, res) => {
+  const health = {
+    ok: true,
+    database: usePostgres ? "postgres" : "json-local",
+    hasDatabaseUrl: Boolean(rawDatabaseUrl),
+    hasPlaceholderDatabaseUrl,
+    vercel: isVercel
+  };
+
+  try {
+    await ensureStoreReady();
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({ ...health, ok: false, error: safeError(error) });
+  }
+});
+
 app.post("/api/proposals", waitForStore, writeLimiter, ensureVoter, upload.single("image"), async (req, res, next) => {
   try {
     const title = clean(req.body.title, 80);
@@ -369,7 +393,7 @@ app.use((err, _req, res, _next) => {
     return res.status(400).json({ error: `La imagen debe pesar maximo ${maxUploadMb}MB.` });
   }
   console.error(err);
-  res.status(500).json({ error: "Algo fallo en el servidor." });
+  res.status(500).json({ error: "Algo fallo en el servidor.", detail: safeError(err) });
 });
 
 if (require.main === module) {
