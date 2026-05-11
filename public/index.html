@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,36 +14,36 @@
       </div>
       <nav class="nav">
         <a href="#ranking">Ranking</a>
-        <a href="#proponer">Proponer</a>
+        <a href="#submit">Submit</a>
       </nav>
     </header>
 
     <main>
       <section id="ranking" class="ranking-hero">
         <div class="hero-copy">
-          <p class="eyebrow">Votacion global</p>
-          <h1>Ranking nostalgia</h1>
+          <p class="eyebrow">Global voting</p>
+          <h1>Nostalgia ranking</h1>
           <p>
-            Fans de todo el mundo votan que serie o pelicula de su infancia merece volver a Netflix como live action, remaster o nueva temporada.
+            Fans around the world vote for the childhood series or movie they want to see return to Netflix as a live action, remaster, or new season.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="#proponer">Subir idea</a>
-            <button id="refreshButton" class="button secondary" type="button">Actualizar ranking</button>
+            <a class="button primary" href="#submit">Submit idea</a>
+            <button id="refreshButton" class="button secondary" type="button">Refresh ranking</button>
           </div>
         </div>
 
-        <section class="stats" aria-label="Mecanica de la propuesta">
+        <section class="stats" aria-label="How the proposal works">
           <div>
             <strong>1</strong>
-            <span>Sube una serie de tu infancia</span>
+            <span>Upload a childhood series</span>
           </div>
           <div>
             <strong>2</strong>
-            <span>Comparte el enlace con otros fans</span>
+            <span>Share the link with other fans</span>
           </div>
           <div>
             <strong>3</strong>
-            <span>La mas votada puede volver</span>
+            <span>The top-voted idea can return</span>
           </div>
         </section>
 
@@ -53,10 +53,10 @@
 
       <section class="pitch">
         <div class="pitch-copy">
-          <p class="eyebrow">Propuesta interactiva para Netflix</p>
-          <h2>Que tu recuerdo favorito vuelva como original.</h2>
+          <p class="eyebrow">Interactive proposal for Netflix</p>
+          <h2>Bring your favorite memory back as an original.</h2>
           <p>
-            La propuesta convierte la nostalgia de los usuarios de 25 a 35 anos en participacion: cada idea se vota, se comparte y construye una senal clara sobre que historias deberian regresar.
+            This concept turns nostalgia from 25 to 35 year-old users into participation: every idea can be voted on, shared, and used as a clear signal for which stories should come back.
           </p>
           <div class="hero-visual" aria-hidden="true">
             <div class="poster poster-one">90s</div>
@@ -65,52 +65,52 @@
           </div>
         </div>
 
-        <aside id="proponer" class="submit-panel">
-          <h2>Crear propuesta</h2>
+        <aside id="submit" class="submit-panel">
+          <h2>Create proposal</h2>
           <form id="proposalForm">
             <label>
-              Titulo de la serie o pelicula
-              <input name="title" maxlength="80" required placeholder="Ej. Dragon Tales live action">
+              Series or movie title
+              <input name="title" maxlength="80" required placeholder="Example: Dragon Tales live action">
             </label>
             <div class="field-row">
               <label>
-                Formato
+                Format
                 <select name="format" required>
                   <option value="Live action">Live action</option>
-                  <option value="Remasterizacion">Remasterizacion</option>
-                  <option value="Nueva temporada">Nueva temporada</option>
-                  <option value="Pelicula original">Pelicula original</option>
+                  <option value="Remaster">Remaster</option>
+                  <option value="New season">New season</option>
+                  <option value="Original movie">Original movie</option>
                 </select>
               </label>
               <label>
-                Pais
+                Country
                 <input name="country" maxlength="60" required placeholder="Colombia">
               </label>
             </div>
             <label>
-              Por que deberia volver
-              <textarea name="reason" maxlength="260" required placeholder="Cuenta el valor nostalgico, el publico y el potencial para Netflix."></textarea>
+              Why should it return?
+              <textarea name="reason" maxlength="260" required placeholder="Explain the nostalgic value, the audience, and the potential for Netflix."></textarea>
             </label>
             <div class="field-row">
               <label>
-                Tu nombre
+                Your name
                 <input name="creator" maxlength="60" required placeholder="Sebastian">
               </label>
               <label>
-                Premio
+                Reward
                 <select name="reward">
-                  <option value="Cameo en la serie">Cameo en la serie</option>
-                  <option value="Dia de grabacion">Dia de grabacion</option>
-                  <option value="Credito fan producer">Credito fan producer</option>
+                  <option value="Cameo in the series">Cameo in the series</option>
+                  <option value="Filming day visit">Filming day visit</option>
+                  <option value="Fan producer credit">Fan producer credit</option>
                 </select>
               </label>
             </div>
             <label class="file-drop" id="fileDrop">
               <input id="imageInput" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required>
               <span id="filePreview" class="file-preview" aria-hidden="true"></span>
-              <span id="fileLabel">Toca o arrastra una imagen</span>
+              <span id="fileLabel">Tap or drag an image</span>
             </label>
-            <button class="button primary full" type="submit">Publicar idea</button>
+            <button class="button primary full" type="submit">Publish idea</button>
             <p id="formStatus" class="status" role="status"></p>
           </form>
         </aside>
@@ -130,7 +130,7 @@
           <p class="creator"></p>
           <div class="card-actions">
             <button class="vote-button" type="button"></button>
-            <button class="share-button" type="button">Compartir</button>
+            <button class="share-button" type="button">Share</button>
           </div>
         </div>
       </article>

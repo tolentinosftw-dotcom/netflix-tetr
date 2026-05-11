@@ -17,7 +17,7 @@ const publicBaseUrl = process.env.PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `
 const maxUploadMb = Number(process.env.MAX_UPLOAD_MB || 3);
 const rawDatabaseUrl = process.env.DATABASE_URL || "";
 const databaseUrl = normalizeDatabaseUrl(rawDatabaseUrl);
-const hasPlaceholderDatabaseUrl = /usuario:password@host|\[YOUR-PASSWORD\]/i.test(rawDatabaseUrl);
+const hasPlaceholderDatabaseUrl = /user:password@host|\[YOUR-PASSWORD\]/i.test(rawDatabaseUrl);
 const usePostgres = Boolean(databaseUrl) && !hasPlaceholderDatabaseUrl;
 const isVercel = Boolean(process.env.VERCEL);
 
@@ -44,8 +44,8 @@ function normalizeDatabaseUrl(value) {
 function imageTitle(filename) {
   const knownTitles = {
     "45da640fbfe3b35a7f25a57bec44de05.jpg": "Looney Tunes live action",
-    "dinosaurios-1024x576.jpg": "Dinosaurios remaster",
-    "images.jpg": "El principe del rap: regreso a Bel-Air",
+    "dinosaurios-1024x576.jpg": "Dinosaurs remaster",
+    "images.jpg": "The Fresh Prince of Bel-Air comeback",
     "MV5BN2VlNTdlMzQtYzE5OC00YmYwLTgyZTItYjEzMWY0ZDNjMTJhXkEyXkFqcGc@._V1_.jpg": "Dragon Ball Z live action"
   };
 
@@ -90,6 +90,14 @@ function createLocalStore() {
       const data = read();
       data.proposals.push({ ...proposal, created_at: new Date().toISOString() });
       write(data);
+    },
+    async updateSeedProposal(proposal) {
+      const data = read();
+      const index = data.proposals.findIndex((item) => item.image_url === proposal.image_url);
+      if (index >= 0) {
+        data.proposals[index] = { ...data.proposals[index], ...proposal };
+        write(data);
+      }
     },
     async getProposal(id) {
       return read().proposals.find((proposal) => proposal.id === id);
@@ -165,6 +173,21 @@ function createPostgresStore() {
         proposal.image_url
       ]);
     },
+    async updateSeedProposal(proposal) {
+      await pool.query(`
+        UPDATE proposals
+        SET title = $1, format = $2, reason = $3, creator = $4, country = $5, reward = $6
+        WHERE image_url = $7
+      `, [
+        proposal.title,
+        proposal.format,
+        proposal.reason,
+        proposal.creator,
+        proposal.country,
+        proposal.reward,
+        proposal.image_url
+      ]);
+    },
     async getProposal(id) {
       const { rows } = await pool.query("SELECT * FROM proposals WHERE id = $1", [id]);
       return rows[0];
@@ -200,19 +223,23 @@ async function seedFromImagesFolder() {
 
   for (const file of files) {
     const imageUrl = `/imagenes/${encodeURIComponent(file)}`;
-    const exists = await store.hasImage(imageUrl);
-    if (exists) continue;
-
-    await store.insertProposal({
+    const proposal = {
       id: nanoid(10),
       title: imageTitle(file),
-      format: file.includes("dinosaurios") ? "Remasterizacion" : "Live action",
-      reason: "Una idea nostalgica para que la comunidad vote si merece volver como original de Netflix.",
+      format: file.includes("dinosaurios") ? "Remaster" : "Live action",
+      reason: "A nostalgic idea for the community to vote on as a potential Netflix original comeback.",
       creator: "Netflix fans",
       country: "Global",
-      reward: "Cameo o dia de grabacion",
+      reward: "Cameo or filming day visit",
       image_url: imageUrl
-    });
+    };
+    const exists = await store.hasImage(imageUrl);
+    if (exists) {
+      await store.updateSeedProposal?.(proposal);
+      continue;
+    }
+
+    await store.insertProposal(proposal);
   }
 }
 
@@ -262,7 +289,7 @@ app.use("/api", apiLimiter);
 
 function safeError(error) {
   return {
-    message: String(error?.message || "Error desconocido").replace(databaseUrl, "[DATABASE_URL]"),
+    message: String(error?.message || "Unknown error").replace(databaseUrl, "[DATABASE_URL]"),
     code: error?.code || null
   };
 }
@@ -270,7 +297,7 @@ function safeError(error) {
 async function waitForStore(_req, _res, next) {
   try {
     if (hasPlaceholderDatabaseUrl) {
-      return next(new Error("DATABASE_URL todavia tiene el valor de ejemplo. Pega la URL real del Transaction pooler de Supabase en Vercel."));
+      return next(new Error("DATABASE_URL still has the example value. Paste the real Supabase Transaction pooler URL in Vercel."));
     }
     await ensureStoreReady();
     next();
@@ -348,10 +375,10 @@ app.post("/api/proposals", waitForStore, writeLimiter, ensureVoter, upload.singl
     const reason = clean(req.body.reason, 260);
     const creator = clean(req.body.creator, 60);
     const country = clean(req.body.country, 60);
-    const reward = clean(req.body.reward, 80) || "Cameo o visita al set";
+    const reward = clean(req.body.reward, 80) || "Cameo or filming day visit";
 
     if (!title || !format || !reason || !creator || !country || !req.file) {
-      return res.status(400).json({ error: "Completa todos los campos y sube una imagen." });
+      return res.status(400).json({ error: "Complete all fields and upload an image." });
     }
 
     const id = nanoid(10);
@@ -378,7 +405,7 @@ app.post("/api/proposals/:id/vote", waitForStore, writeLimiter, ensureVoter, asy
   try {
     const proposal = await store.getProposal(req.params.id);
     if (!proposal) {
-      return res.status(404).json({ error: "La propuesta no existe." });
+      return res.status(404).json({ error: "The proposal does not exist." });
     }
 
     const result = await store.vote(req.params.id, req.voterId);
@@ -390,16 +417,16 @@ app.post("/api/proposals/:id/vote", waitForStore, writeLimiter, ensureVoter, asy
 
 app.use((err, _req, res, _next) => {
   if (err instanceof multer.MulterError) {
-    return res.status(400).json({ error: `La imagen debe pesar maximo ${maxUploadMb}MB.` });
+    return res.status(400).json({ error: `The image must be ${maxUploadMb}MB or smaller.` });
   }
   console.error(err);
-  res.status(500).json({ error: "Algo fallo en el servidor.", detail: safeError(err) });
+  res.status(500).json({ error: "Something went wrong on the server.", detail: safeError(err) });
 });
 
 if (require.main === module) {
   app.listen(port, () => {
-    console.log(`Netflix Nostalgia Vote listo en http://localhost:${port}`);
-    console.log(`Base de datos: ${usePostgres ? "Postgres global" : "JSON local"}`);
+    console.log(`Netflix Nostalgia Vote ready at http://localhost:${port}`);
+    console.log(`Database: ${usePostgres ? "Global Postgres" : "Local JSON"}`);
   });
 }
 

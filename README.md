@@ -1,39 +1,38 @@
 # Netflix Nostalgia Lab
 
-Mini web para una propuesta a Netflix: usuarios de 25 a 35 anos suben ideas nostalgicas, comparten el enlace y votan por remasters, live actions o nuevas temporadas.
+Mini web app for a Netflix proposal: users ages 25 to 35 submit nostalgic ideas, share them, and vote for remasters, live actions, or new seasons.
 
-## Ejecutar
+## Run
 
 ```bash
 npm install
 npm start
 ```
 
-Abre `http://localhost:3000`.
+Open `http://localhost:3000`.
 
-## Persistencia
+## Persistence
 
-La app no usa `localStorage`.
+The app does not use `localStorage`.
 
-En local guarda en un archivo JSON:
+In local development it stores data in a JSON file:
 
-- Base de datos local: `data/local-store.json`
-- Votos duplicados: se bloquean por cookie `voter_id`
+- Local database: `data/local-store.json`
+- Duplicate votes are blocked with the `voter_id` cookie
 
-En produccion usa Postgres si defines `DATABASE_URL`. Asi todas las personas ven las mismas propuestas y votos desde cualquier pais. Las imagenes subidas se guardan como datos en la base para no depender del disco temporal de Vercel.
+In production it uses Postgres when `DATABASE_URL` is defined. This lets people in different countries see the same proposals, votes, and ranking. Uploaded images are stored as data in the database so the app does not depend on Vercel's temporary filesystem.
 
-Puedes usar una base Postgres de Supabase, Neon o cualquier proveedor compatible.
+You can use Supabase, Neon, or any Postgres-compatible provider.
 
 ## Variables
 
-Copia `.env.example` si quieres ajustar:
+Copy `.env.example` if you want to customize:
 
 ```bash
 PORT=3000
-PUBLIC_BASE_URL=https://tu-dominio.com
+PUBLIC_BASE_URL=https://your-domain.com
 MAX_UPLOAD_MB=3
-DATABASE_URL=postgresql://usuario:password@host:5432/database
+DATABASE_URL=postgresql://user:password@host:5432/database
 ```
 
-En Vercel agrega `DATABASE_URL` en Project Settings > Environment Variables y vuelve a desplegar.
-# netflix-tetr
+In Vercel, add `DATABASE_URL` in Project Settings > Environment Variables and redeploy.

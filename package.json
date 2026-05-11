@@ -1,7 +1,7 @@
 {
   "name": "netflix-nostalgia-vote",
   "version": "1.0.0",
-  "description": "Mini web para proponer y votar remasters o live actions nostalgicos para Netflix.",
+  "description": "Mini web app for proposing and voting on nostalgic Netflix remasters or live actions.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -32,7 +32,7 @@ function renderHighlight() {
   highlight.innerHTML = `
     <img src="${idea.imageUrl}" alt="${escapeText(idea.title)}">
     <div>
-      <span>Idea compartida</span>
+      <span>Shared idea</span>
       <h3>${escapeText(idea.title)}</h3>
       <p>${escapeText(idea.reason)}</p>
     </div>
@@ -61,10 +61,10 @@ function renderProposals() {
     img.alt = proposal.title;
     title.textContent = proposal.title;
     reason.textContent = proposal.reason;
-    creator.textContent = `Propuesta por ${proposal.creator} - Premio: ${proposal.reward}`;
+    creator.textContent = `Submitted by ${proposal.creator} - Reward: ${proposal.reward}`;
     format.textContent = proposal.format;
     country.textContent = proposal.country;
-    voteButton.textContent = proposal.hasVoted ? `${proposal.votes} votos - Ya votaste` : `${proposal.votes} votos - Votar`;
+    voteButton.textContent = proposal.hasVoted ? `${proposal.votes} votes - Voted` : `${proposal.votes} votes - Vote`;
     voteButton.disabled = proposal.hasVoted;
 
     voteButton.addEventListener("click", () => voteFor(proposal.id, voteButton));
@@ -103,8 +103,8 @@ async function voteFor(id, button) {
 
 async function shareProposal(proposal) {
   const shareData = {
-    title: `Vota por ${proposal.title}`,
-    text: `Ayuda a que ${proposal.title} vuelva a Netflix como ${proposal.format}.`,
+    title: `Vote for ${proposal.title}`,
+    text: `Help bring ${proposal.title} back to Netflix as a ${proposal.format}.`,
     url: proposal.shareUrl
   };
 
@@ -114,7 +114,7 @@ async function shareProposal(proposal) {
   }
 
   await navigator.clipboard.writeText(proposal.shareUrl);
-  statusEl.textContent = "Enlace copiado para compartir.";
+  statusEl.textContent = "Share link copied.";
 }
 
 function setImagePreview(file) {
@@ -129,14 +129,14 @@ function setImagePreview(file) {
 }
 
 function clearImagePreview() {
-  fileLabel.textContent = "Toca o arrastra una imagen";
+  fileLabel.textContent = "Tap or drag an image";
   filePreview.style.backgroundImage = "";
   fileDrop.classList.remove("has-preview", "dragging");
 }
 
 function setDroppedFile(file) {
   if (!file || !file.type.startsWith("image/")) {
-    statusEl.textContent = "El archivo debe ser una imagen.";
+    statusEl.textContent = "The file must be an image.";
     return;
   }
 
@@ -148,7 +148,7 @@ function setDroppedFile(file) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  statusEl.textContent = "Publicando idea...";
+  statusEl.textContent = "Publishing idea...";
   const submitButton = form.querySelector("button[type='submit']");
   submitButton.disabled = true;
 
@@ -159,12 +159,12 @@ form.addEventListener("submit", async (event) => {
       credentials: "include"
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "No se pudo publicar.");
+    if (!response.ok) throw new Error(data.error || "Could not publish the idea.");
 
     proposals.unshift(data.proposal);
     form.reset();
     clearImagePreview();
-    statusEl.textContent = "Idea publicada. Ya aparece en el ranking global.";
+    statusEl.textContent = "Idea published. It now appears in the global ranking.";
     renderProposals();
     document.querySelector("#ranking").scrollIntoView({ behavior: "smooth" });
   } catch (error) {
