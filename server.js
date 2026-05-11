@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
@@ -17,14 +18,17 @@ const maxUploadMb = Number(process.env.MAX_UPLOAD_MB || 3);
 const databaseUrl = process.env.DATABASE_URL || "";
 const hasPlaceholderDatabaseUrl = /usuario:password@host|\[YOUR-PASSWORD\]/i.test(databaseUrl);
 const usePostgres = Boolean(databaseUrl) && !hasPlaceholderDatabaseUrl;
+const isVercel = Boolean(process.env.VERCEL);
 
 const rootDir = __dirname;
-const dataDir = path.join(rootDir, "data");
+const dataDir = isVercel ? path.join(os.tmpdir(), "netflix-tetr-data") : path.join(rootDir, "data");
 const publicDir = path.join(rootDir, "public");
 const imagesDir = path.join(rootDir, "imagenes");
 
 fs.mkdirSync(dataDir, { recursive: true });
-fs.mkdirSync(imagesDir, { recursive: true });
+if (!isVercel) {
+  fs.mkdirSync(imagesDir, { recursive: true });
+}
 
 function nanoid(size = 10) {
   return crypto.randomBytes(Math.ceil(size * 0.75)).toString("base64url").slice(0, size);
