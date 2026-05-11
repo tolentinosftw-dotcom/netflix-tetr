@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
@@ -12,12 +13,13 @@ const crypto = require("crypto");
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
-const publicBaseUrl = process.env.PUBLIC_BASE_URL || `http://localhost:${port}`;
+const publicBaseUrl = process.env.PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${port}`);
 const maxUploadMb = Number(process.env.MAX_UPLOAD_MB || 5);
+const isVercel = Boolean(process.env.VERCEL);
 
 const rootDir = __dirname;
-const dataDir = path.join(rootDir, "data");
-const uploadDir = path.join(rootDir, "uploads");
+const dataDir = isVercel ? path.join(os.tmpdir(), "netflix-tetr-data") : path.join(rootDir, "data");
+const uploadDir = isVercel ? path.join(os.tmpdir(), "netflix-tetr-uploads") : path.join(rootDir, "uploads");
 const publicDir = path.join(rootDir, "public");
 const imagesDir = path.join(rootDir, "imagenes");
 
@@ -251,6 +253,10 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: "Algo fallo en el servidor." });
 });
 
-app.listen(port, () => {
-  console.log(`Netflix Nostalgia Vote listo en http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Netflix Nostalgia Vote listo en http://localhost:${port}`);
+  });
+}
+
+module.exports = app;
