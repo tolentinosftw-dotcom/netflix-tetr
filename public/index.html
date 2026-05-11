@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Netflix Nostalgia Lab</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand" aria-label="Netflix Nostalgia Lab">
+        <span class="netflix-logo">NETFLIX</span>
+        <span class="brand-subtitle">Nostalgia Lab</span>
+      </div>
+      <nav class="nav">
+        <a href="#ranking">Ranking</a>
+        <a href="#proponer">Proponer</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="ranking" class="ranking-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Votacion global</p>
+          <h1>Ranking nostalgia</h1>
+          <p>
+            Fans de todo el mundo votan que serie o pelicula de su infancia merece volver a Netflix como live action, remaster o nueva temporada.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#proponer">Subir idea</a>
+            <button id="refreshButton" class="button secondary" type="button">Actualizar ranking</button>
+          </div>
+        </div>
+
+        <section class="stats" aria-label="Mecanica de la propuesta">
+          <div>
+            <strong>1</strong>
+            <span>Sube una serie de tu infancia</span>
+          </div>
+          <div>
+            <strong>2</strong>
+            <span>Comparte el enlace con otros fans</span>
+          </div>
+          <div>
+            <strong>3</strong>
+            <span>La mas votada puede volver</span>
+          </div>
+        </section>
+
+        <div id="highlight" class="highlight"></div>
+        <div id="proposalGrid" class="proposal-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="pitch">
+        <div class="pitch-copy">
+          <p class="eyebrow">Propuesta interactiva para Netflix</p>
+          <h2>Que tu recuerdo favorito vuelva como original.</h2>
+          <p>
+            La propuesta convierte la nostalgia de los usuarios de 25 a 35 anos en participacion: cada idea se vota, se comparte y construye una senal clara sobre que historias deberian regresar.
+          </p>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="poster poster-one">90s</div>
+            <div class="poster poster-two">LIVE</div>
+            <div class="poster poster-three">HD</div>
+          </div>
+        </div>
+
+        <aside id="proponer" class="submit-panel">
+          <h2>Crear propuesta</h2>
+          <form id="proposalForm">
+            <label>
+              Titulo de la serie o pelicula
+              <input name="title" maxlength="80" required placeholder="Ej. Dragon Tales live action">
+            </label>
+            <div class="field-row">
+              <label>
+                Formato
+                <select name="format" required>
+                  <option value="Live action">Live action</option>
+                  <option value="Remasterizacion">Remasterizacion</option>
+                  <option value="Nueva temporada">Nueva temporada</option>
+                  <option value="Pelicula original">Pelicula original</option>
+                </select>
+              </label>
+              <label>
+                Pais
+                <input name="country" maxlength="60" required placeholder="Colombia">
+              </label>
+            </div>
+            <label>
+              Por que deberia volver
+              <textarea name="reason" maxlength="260" required placeholder="Cuenta el valor nostalgico, el publico y el potencial para Netflix."></textarea>
+            </label>
+            <div class="field-row">
+              <label>
+                Tu nombre
+                <input name="creator" maxlength="60" required placeholder="Sebastian">
+              </label>
+              <label>
+                Premio
+                <select name="reward">
+                  <option value="Cameo en la serie">Cameo en la serie</option>
+                  <option value="Dia de grabacion">Dia de grabacion</option>
+                  <option value="Credito fan producer">Credito fan producer</option>
+                </select>
+              </label>
+            </div>
+            <label class="file-drop" id="fileDrop">
+              <input id="imageInput" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" required>
+              <span id="filePreview" class="file-preview" aria-hidden="true"></span>
+              <span id="fileLabel">Toca o arrastra una imagen</span>
+            </label>
+            <button class="button primary full" type="submit">Publicar idea</button>
+            <p id="formStatus" class="status" role="status"></p>
+          </form>
+        </aside>
+      </section>
+    </main>
+
+    <template id="proposalTemplate">
+      <article class="proposal-card">
+        <img class="proposal-image" alt="">
+        <div class="proposal-content">
+          <div class="proposal-meta">
+            <span class="format"></span>
+            <span class="country"></span>
+          </div>
+          <h3></h3>
+          <p class="reason"></p>
+          <p class="creator"></p>
+          <div class="card-actions">
+            <button class="vote-button" type="button"></button>
+            <button class="share-button" type="button">Compartir</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
